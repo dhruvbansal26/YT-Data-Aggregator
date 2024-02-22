@@ -76,16 +76,50 @@ export const FetchData = async (values: z.infer<typeof DataSchema>) => {
   // Process all users concurrently
   const userDataPromises = validatedFields.users.map(fetchUserData);
   const results = await Promise.all(userDataPromises);
-
-  // Return the results
-
   const finalResult = results.map((result) => {
-    return {
-      username: result.username,
-      videos: result.videos || [],
-      error: result.error || null,
-    };
+    const videos = result.videos ?? []; // Use nullish coalescing to default to an empty array if undefined
+
+    if (videos.length > 0) {
+      const totalViews = videos.reduce(
+        (acc, video) => acc + parseInt(video.viewCount, 10),
+        0
+      );
+      const totalLikes = videos.reduce(
+        (acc, video) => acc + parseInt(video.likeCount, 10),
+        0
+      );
+      const totalComments = videos.reduce(
+        (acc, video) => acc + parseInt(video.commentCount, 10),
+        0
+      );
+      const numberOfVideos = videos.length;
+
+      const averageViews = totalViews / numberOfVideos;
+      const averageLikes = totalLikes / numberOfVideos;
+      const averageComments = totalComments / numberOfVideos;
+
+      return {
+        username: result.username,
+        averageViews,
+        averageComments,
+        averageLikes,
+        numberOfVideos,
+        error: result.error,
+      };
+    } else {
+      // Return some default values for users with no videos or when videos are undefined
+      return {
+        username: result.username,
+        averageViews: 0,
+        averageComments: 0,
+        averageLikes: 0,
+        numberOfVideos: 0,
+        error: result.error ?? "No videos found or videos data unavailable", // Use nullish coalescing here too
+      };
+    }
   });
+
+  console.log("Final result:", finalResult);
 
   return finalResult;
 };

@@ -11,14 +11,6 @@ import { FetchData } from "@/actions/fetch-data";
 import { useFieldArray } from "react-hook-form";
 import { useTransition } from "react";
 import {
-  Form,
-  FormControl,
-  FormField,
-  FormItem,
-  FormLabel,
-  FormMessage,
-} from "@/components/ui/form";
-import {
   Card,
   CardContent,
   CardDescription,
@@ -26,13 +18,25 @@ import {
   CardHeader,
   CardTitle,
 } from "@/components/ui/card";
+
 import { FormError } from "./form-error";
 import { FormSuccess } from "./form-success";
+
+interface UserData {
+  username: string;
+  averageViews: number;
+  averageLikes: number;
+  averageComments: number;
+  numberOfVideos: number;
+  error: string | undefined;
+}
 
 export const DataForm = () => {
   const [errorMessage, setErrorMessage] = useState("");
   const [successMessage, setSuccessMessage] = useState("");
   const [isPending, startTransition] = useTransition();
+
+  const [userData, setUserData] = useState<UserData[]>([]);
 
   const {
     control,
@@ -53,6 +57,7 @@ export const DataForm = () => {
     startTransition(async () => {
       try {
         const response = await FetchData({ users: data.users });
+        setUserData(response);
       } catch (error) {
         setErrorMessage("An error occurred while fetching data");
       }
@@ -89,6 +94,22 @@ export const DataForm = () => {
           </form>
         </CardContent>
       </Card>
+      <div>
+        {userData.map((user, index) => (
+          <div key={index}>
+            <Card>
+              <CardHeader>{user.username}</CardHeader>
+              <CardContent>
+                <p>Average Views: {user.averageViews}</p>
+                <p>Average Comments: {user.averageComments}</p>
+                <p>Average Likes: {user.averageLikes}</p>
+                <p>Number of Videos: {user.numberOfVideos}</p>
+                {user.error && <FormError message={user.error}></FormError>}
+              </CardContent>
+            </Card>
+          </div>
+        ))}
+      </div>
     </>
   );
 };
