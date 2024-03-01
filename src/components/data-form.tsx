@@ -1,8 +1,6 @@
 "use client";
 import React, { useState } from "react";
 import { useForm } from "react-hook-form";
-import { cn } from "@/lib/utils";
-import * as z from "zod";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { DataSchema } from "@/schemas"; // Make sure this schema supports an array of { username: string; link: string; }
 import { Button } from "@/components/ui/button";
@@ -14,21 +12,26 @@ import {
   Card,
   CardContent,
   CardDescription,
-  CardFooter,
   CardHeader,
   CardTitle,
 } from "@/components/ui/card";
-
 import { FormError } from "./form-error";
 import { FormSuccess } from "./form-success";
+import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 
 interface UserData {
   username: string;
+  channelThumbnailUrl: string;
+  totalChannelViews: number;
+  videoCount: number;
+  subscriberCount: number;
   averageViews: number;
   averageLikes: number;
   averageComments: number;
   numberOfVideos: number;
+  engagementRate: number;
   error: string | undefined;
+  latestVideoId: string;
 }
 
 export const DataForm = () => {
@@ -58,6 +61,7 @@ export const DataForm = () => {
       try {
         const response = await FetchData({ users: data.users });
         setUserData(response);
+        setSuccessMessage("Data fetched successfully!");
       } catch (error) {
         setErrorMessage("An error occurred while fetching data");
       }
@@ -80,6 +84,7 @@ export const DataForm = () => {
                   placeholder="Username"
                   defaultValue={field.id} // Important for edit scenarios
                 />
+
                 <Button type="button" onClick={() => remove(index)}>
                   Remove
                 </Button>
@@ -100,10 +105,45 @@ export const DataForm = () => {
             <Card>
               <CardHeader>{user.username}</CardHeader>
               <CardContent>
+                {user.channelThumbnailUrl && (
+                  <>
+                    <Avatar>
+                      <AvatarImage src={user.channelThumbnailUrl} />
+
+                      <AvatarFallback>N/A</AvatarFallback>
+                    </Avatar>
+                  </>
+                )}
+                <div
+                  className="video-embed-container"
+                  style={{
+                    position: "relative",
+                    paddingBottom: "56.25%" /* 16:9 Aspect Ratio */,
+                    paddingTop: "25px",
+                    height: 0,
+                  }}
+                >
+                  <iframe
+                    style={{
+                      position: "absolute",
+                      top: 0,
+                      left: 0,
+                      width: "100%",
+                      height: "100%",
+                    }}
+                    src={`https://www.youtube.com/embed/${user.latestVideoId}`}
+                    allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
+                    allowFullScreen
+                    title="Embedded YouTube Video"
+                  ></iframe>
+                </div>
+                <p>Subsriber Count: {user.subscriberCount}</p>
+                <p>Total Channel Views: {user.totalChannelViews}</p>
+                <p>Number of Videos: {user.numberOfVideos}</p>
                 <p>Average Views: {user.averageViews}</p>
                 <p>Average Comments: {user.averageComments}</p>
                 <p>Average Likes: {user.averageLikes}</p>
-                <p>Number of Videos: {user.numberOfVideos}</p>
+                <p>Engagement Rate: {user.engagementRate}%</p>
                 {user.error && <FormError message={user.error}></FormError>}
               </CardContent>
             </Card>
