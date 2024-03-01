@@ -8,7 +8,7 @@ export const FetchData = async (values: z.infer<typeof DataSchema>) => {
   const validatedFields = DataSchema.parse(values);
 
   // Function to fetch data for a single user
-  const fetchUserData = async ({ username }) => {
+  const fetchUserData = async ({ username }: { username: string }) => {
     try {
       // Fetch channel information
       const channelResponse = await fetch(
@@ -47,8 +47,10 @@ export const FetchData = async (values: z.infer<typeof DataSchema>) => {
       }
 
       // Fetch statistics for each video
-      const videoIds = videosFetched.items.map((video) => video.id.videoId);
-      const videoDataPromises = videoIds.map((videoId) =>
+      const videoIds = videosFetched.items.map(
+        (video: any) => video.id.videoId
+      );
+      const videoDataPromises = videoIds.map((videoId: any) =>
         fetch(
           `https://www.googleapis.com/youtube/v3/videos?key=${apiKey}&part=statistics&id=${videoId}`
         )
@@ -76,6 +78,9 @@ export const FetchData = async (values: z.infer<typeof DataSchema>) => {
   // Process all users concurrently
   const userDataPromises = validatedFields.users.map(fetchUserData);
   const results = await Promise.all(userDataPromises);
+
+  console.log("Results:", results);
+
   const finalResult = results.map((result) => {
     const videos = result.videos ?? []; // Use nullish coalescing to default to an empty array if undefined
 
